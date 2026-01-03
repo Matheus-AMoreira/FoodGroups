@@ -1,4 +1,4 @@
-namespace FoodGroups.model;
+namespace FoodGroups.Models;
 
 public class Grupo
 {

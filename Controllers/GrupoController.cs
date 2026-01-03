@@ -1,4 +1,4 @@
-using FoodGroups.Service;
+using FoodGroups.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoodGroups.Controllers;
@@ -21,7 +21,7 @@ public class GrupoController : ControllerBase
     {
         try
         {
-            await _service.AdicionarUsuario(id, usuarioId, solicitanteId);
+            String response = await _service.AdicionarUsuario(id, usuarioId, solicitanteId);
             return Ok("Usuário adicionado e limite atualizado.");
         }
         catch (UnauthorizedAccessException)

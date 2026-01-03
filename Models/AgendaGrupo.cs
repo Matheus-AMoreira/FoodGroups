@@ -1,4 +1,4 @@
-namespace FoodGroups.model;
+namespace FoodGroups.Models;
 
 public enum TipoRefeicao { Cafe, Almoco, Jantar }
 

@@ -1,5 +1,5 @@
-using FoodGroups.model;
-using FoodGroups.Service;
+using FoodGroups.Models;
+using FoodGroups.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoodGroups.Controllers;
@@ -36,6 +36,6 @@ public class UsuarioController : ControllerBase
     public async Task<ActionResult<Usuario>> Post([FromBody] Usuario usuario)
     {
         var novoUsuario = await _service.CriarUsuario(usuario);
-        return CreatedAtAction(nameof(Get), new { id = novoUsuario.Id }, novoUsuario);
+        return CreatedAtAction(nameof(Get), new { usuario = novoUsuario }, novoUsuario);
     }
 }

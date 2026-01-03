@@ -1,31 +1,49 @@
 
-using FoodGroups.DTO;
-using Microsoft.EntityFrameworkCore;
+using FoodGroups.DTOs;
 
-namespace FoodGroups.Service;
+namespace FoodGroups.Services;
 
-public class GrupoService
+public class GrupoService : IGrupoService
 {
-    private readonly AppDbContext _context;
+    private readonly IUsuarioRepository _usuarioRepository;
+    private readonly IGrupoRepository _grupoRepository;
 
-    public GrupoService(AppDbContext context) => _context = context;
+    public GrupoService
+    (
+        IUsuarioRepository usuarioRepository,
+        IGrupoRepository grupoRepository
+    )
+    {
+        _usuarioRepository = usuarioRepository;
+        _grupoRepository = grupoRepository;
+    }
 
     // 1. Criador adiciona usuários e o limite sobe se necessário
-    public async Task AdicionarUsuario(int grupoId, int usuarioId, int solicitanteId)
+    public async Task<String> AdicionarUsuario(int grupoId, int usuarioId, int solicitanteId)
     {
-        var grupo = await _context.Grupos.Include(g => g.Usuarios).FirstOrDefaultAsync(g => g.Id == grupoId);
+        var grupo = await _grupoRepository.GetGroupById(grupoId);
         if (grupo == null) throw new Exception("Grupo não encontrado.");
 
         if (grupo.CriadorId != solicitanteId)
             throw new UnauthorizedAccessException("Apenas o criador pode adicionar membros.");
 
-        // Se encher, aumenta o limite automaticamente
         if (grupo.Usuarios.Count >= grupo.CapacidadeMaxima)
             grupo.CapacidadeMaxima++;
 
-        var usuario = await _context.Usuarios.FindAsync(usuarioId);
-        grupo.Usuarios.Add(usuario!);
-        await _context.SaveChangesAsync();
+        // Correção: Use await em vez de .Result para evitar deadlocks
+        var usuario = await _usuarioRepository.GetUsuarioById(usuarioId);
+
+        if (usuario != null)
+        {
+            grupo.Usuarios.Add(usuario);
+
+            // CORREÇÃO AQUI: Usa o repositório para salvar
+            await _grupoRepository.UpdateGrupo(grupo);
+
+            return "Usuário adicionado e limite atualizado.";
+        }
+
+        return "Erro ao adicionar usuário";
     }
 
     // 2. Visualização Mensal
@@ -37,10 +55,7 @@ public class GrupoService
         var inicio = new DateTime(consultaAno, consultaMes, 1);
         var fim = inicio.AddMonths(2).AddDays(-1); // Mês atual e próximo
 
-        var grupos = await _context.Grupos
-            .Include(g => g.Usuarios)
-            .Include(g => g.Agendas)
-            .ToListAsync();
+        var grupos = await _grupoRepository.GetGruposWithUsuariosAndAgendas();
 
         var resultado = new List<ResumoRefeicaoDTO>();
 

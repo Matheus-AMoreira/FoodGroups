@@ -1,4 +1,4 @@
-using FoodGroups.model;
+using FoodGroups.Models;
 using Microsoft.EntityFrameworkCore;
 
 public class AppDbContext : DbContext
