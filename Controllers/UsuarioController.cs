@@ -1,5 +1,4 @@
 using FoodGroups.Models;
-using FoodGroups.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoodGroups.Controllers;
@@ -8,18 +7,14 @@ namespace FoodGroups.Controllers;
 [Route("api/[controller]")]
 public class UsuarioController : ControllerBase
 {
-    private readonly UsuarioService _service;
-
-    public UsuarioController(UsuarioService service)
-    {
-        _service = service;
-    }
+    private readonly IUsuarioService _usuarioService;
+    public UsuarioController(IUsuarioService service) => _usuarioService = service;
 
     // GET: api/usuario
     [HttpGet]
     public async Task<ActionResult<List<Usuario>>> Get()
     {
-        var usuarios = await _service.ListarTodos();
+        var usuarios = await _usuarioService.ListarTodos();
         return Ok(usuarios);
     }
 
@@ -27,7 +22,7 @@ public class UsuarioController : ControllerBase
     [HttpGet("buscar")]
     public async Task<ActionResult<List<Usuario>>> Buscar([FromQuery] string termo)
     {
-        var resultados = await _service.BuscarUsuarios(termo);
+        var resultados = await _usuarioService.BuscarUsuarios(termo);
         return Ok(resultados);
     }
 
@@ -35,7 +30,7 @@ public class UsuarioController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Usuario>> Post([FromBody] Usuario usuario)
     {
-        var novoUsuario = await _service.CriarUsuario(usuario);
+        var novoUsuario = await _usuarioService.CriarUsuario(usuario);
         return CreatedAtAction(nameof(Get), new { usuario = novoUsuario }, novoUsuario);
     }
 }

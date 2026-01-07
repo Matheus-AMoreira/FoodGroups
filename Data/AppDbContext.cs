@@ -3,7 +3,10 @@ using Microsoft.EntityFrameworkCore;
 
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+    }
 
     // Tabelas
     public DbSet<Usuario> Usuarios { get; set; }

@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+DotNetEnv.Env.Load();
+
 // Swagger
 builder.Services.AddSwaggerGen();
 
@@ -13,7 +15,11 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 //  Banco de dados
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = DotNetEnv.Env.GetString(
+    "DB_CONNECTION_STRING",
+    builder.Configuration.GetConnectionString("DefaultConnection")
+);
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
@@ -27,14 +33,7 @@ builder.Services.AddScoped<IGrupoRepository, GrupoRepository>();
 
 var app = builder.Build();
 
-// Swagger
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-});
-
-// Database Connection
+// Database Connection test
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -42,6 +41,14 @@ using (var scope = app.Services.CreateScope())
     bool canConnect = await context.Database.CanConnectAsync();
     Console.WriteLine(canConnect ? "Conexão com Postgres OK!" : "Falha na conexão.");
 }
+
+// Swagger
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+    Console.WriteLine("Swagger: http://localhost:5043/swagger/index.html");
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
