@@ -1,4 +1,5 @@
 using FoodGroups.Models;
+using FoodGroups.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoodGroups.Controllers;
@@ -12,7 +13,7 @@ public class UsuarioController : ControllerBase
 
     // GET: api/usuario
     [HttpGet]
-    public async Task<ActionResult<List<Usuario>>> Get()
+    public async Task<ActionResult<List<Usuario>>> GetUsuarios()
     {
         var usuarios = await _usuarioService.ListarTodos();
         return Ok(usuarios);
@@ -20,7 +21,7 @@ public class UsuarioController : ControllerBase
 
     // GET: api/usuario/buscar?termo=joao
     [HttpGet("buscar")]
-    public async Task<ActionResult<List<Usuario>>> Buscar([FromQuery] string termo)
+    public async Task<ActionResult<List<Usuario>>> BuscarUsuarios([FromQuery] string termo)
     {
         var resultados = await _usuarioService.BuscarUsuarios(termo);
         return Ok(resultados);
@@ -28,9 +29,17 @@ public class UsuarioController : ControllerBase
 
     // POST: api/usuario
     [HttpPost]
-    public async Task<ActionResult<Usuario>> Post([FromBody] Usuario usuario)
+    public async Task<String> PostUsuario([FromBody] CriarUsuarioDTO usuarioDTO)
     {
-        var novoUsuario = await _usuarioService.CriarUsuario(usuario);
-        return CreatedAtAction(nameof(Get), new { usuario = novoUsuario }, novoUsuario);
+        var usuario = new Usuario
+        {
+            Nome = usuarioDTO.Nome,
+            Email = usuarioDTO.Email,
+            Senha = usuarioDTO.Senha
+        };
+
+        var resultado = await _usuarioService.CriarUsuario(usuario);
+
+        return resultado;
     }
 }

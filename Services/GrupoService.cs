@@ -31,7 +31,7 @@ public class GrupoService : IGrupoService
             grupo.CapacidadeMaxima++;
 
         // Correção: Use await em vez de .Result para evitar deadlocks
-        var usuario = await _usuarioRepository.GetUsuarioById(usuarioId);
+        var usuario = await _usuarioRepository.ProcurarUsuarioById(usuarioId);
 
         if (usuario != null)
         {

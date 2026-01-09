@@ -14,19 +14,19 @@ public class UsuarioService : IUsuarioService
     // Cria um novo usuário
     public async Task<String> CriarUsuario(Usuario usuario)
     {
-        await _usuarioRepository.PostUsuario(usuario);
+        await _usuarioRepository.CriarUsuario(usuario);
         return "Usuario adicionado";
     }
 
     // Busca usuários por nome ou email (para o criador do grupo encontrar pessoas)
     public async Task<List<Usuario>> BuscarUsuarios(string termo)
     {
-        return await _usuarioRepository.GetUsuariosByNameOrEmail(termo);
+        return await _usuarioRepository.ProcurarUsuariosByNameOrEmail(termo);
     }
 
     // Listagem simples de todos
     public async Task<List<Usuario>> ListarTodos()
     {
-        return await _usuarioRepository.GetUsuarios();
+        return await _usuarioRepository.ListarUsuarios();
     }
 }

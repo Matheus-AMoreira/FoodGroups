@@ -7,24 +7,24 @@ public class UsuarioRepository : IUsuarioRepository
 
     public UsuarioRepository(AppDbContext context) => _context = context;
 
-    public async Task PostUsuario(Usuario usuario)
+    public async Task CriarUsuario(Usuario usuario)
     {
         await _context.Usuarios.AddAsync(usuario);
     }
 
-    public async Task<Usuario?> GetUsuarioById(int Id)
+    public async Task<Usuario?> ProcurarUsuarioById(int Id)
     {
         return await _context.Usuarios.FindAsync(Id);
     }
 
-    public async Task<List<Usuario>> GetUsuariosByNameOrEmail(string termo)
+    public async Task<List<Usuario>> ProcurarUsuariosByNameOrEmail(string termo)
     {
         return await _context.Usuarios
             .Where(u => u.Nome.Contains(termo) || u.Email.Contains(termo))
             .ToListAsync();
     }
 
-    public async Task<List<Usuario>> GetUsuarios()
+    public async Task<List<Usuario>> ListarUsuarios()
     {
         return await _context.Usuarios.ToListAsync();
     }
