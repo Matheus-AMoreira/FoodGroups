@@ -1,4 +1,4 @@
-
+using FoodGroups.Models;
 using FoodGroups.DTOs;
 
 namespace FoodGroups.Services;
@@ -18,6 +18,22 @@ public class GrupoService : IGrupoService
         _grupoRepository = grupoRepository;
     }
 
+    public async Task<String> CriarGrupo(Grupo grupo)
+    {
+        if (grupo.Agendas == null)
+        {
+            return "sem sgenda";
+        }
+        if (grupo.CapacidadeMaxima >= 0)
+        {
+            return "Capacidade precisa ser maior que 1";
+        }
+
+        await _grupoRepository.CriarGrupo(grupo);
+
+        return "oi";
+    }
+
     // 1. Criador adiciona usuários e o limite sobe se necessário
     public async Task<String> AdicionarUsuario(int grupoId, int usuarioId, int solicitanteId)
     {
@@ -30,14 +46,12 @@ public class GrupoService : IGrupoService
         if (grupo.Usuarios.Count >= grupo.CapacidadeMaxima)
             grupo.CapacidadeMaxima++;
 
-        // Correção: Use await em vez de .Result para evitar deadlocks
         var usuario = await _usuarioRepository.ProcurarUsuarioById(usuarioId);
 
         if (usuario != null)
         {
             grupo.Usuarios.Add(usuario);
 
-            // CORREÇÃO AQUI: Usa o repositório para salvar
             await _grupoRepository.UpdateGrupo(grupo);
 
             return "Usuário adicionado e limite atualizado.";

@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace FoodGroups.Models;
 
+[Index(nameof(Nome), nameof(Email), IsUnique = true)]
 public class Usuario
 {
     public int Id { get; set; }
@@ -10,7 +12,7 @@ public class Usuario
     public string Nome { get; set; } = string.Empty;
 
     [Required]
-    [EmailAddress] // Valida formato de e-mail
+    [EmailAddress]
     public string Email { get; set; } = string.Empty;
 
     [Required]

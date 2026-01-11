@@ -7,10 +7,10 @@ public class GrupoRepository : IGrupoRepository
 
     public GrupoRepository(AppDbContext context) => _context = context;
 
-    public async Task<Usuario?> PostGrupo(int Id)
+    public async Task CriarGrupo(Grupo grupo)
     {
-        var result = await _context.Usuarios.FindAsync(Id);
-        return result;
+        _context.Grupos.Add(grupo);
+        _context.SaveChanges();
     }
 
     public async Task UpdateGrupo(Grupo grupo)

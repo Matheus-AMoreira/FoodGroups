@@ -7,14 +7,17 @@ public class UsuarioRepository : IUsuarioRepository
 
     public UsuarioRepository(AppDbContext context) => _context = context;
 
-    public async Task CriarUsuario(Usuario usuario)
+    public async Task<Usuario> CriarUsuario(Usuario usuario)
     {
-        await _context.Usuarios.AddAsync(usuario);
+        var entry = _context.Usuarios.Add(usuario);
+        await _context.SaveChangesAsync();
+        
+        return entry.Entity;
     }
 
-    public async Task<Usuario?> ProcurarUsuarioById(int Id)
+    public async Task<Usuario?> ProcurarUsuarioById(int id)
     {
-        return await _context.Usuarios.FindAsync(Id);
+        return await _context.Usuarios.FindAsync(id);
     }
 
     public async Task<List<Usuario>> ProcurarUsuariosByNameOrEmail(string termo)
