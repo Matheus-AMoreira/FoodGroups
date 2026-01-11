@@ -1,8 +1,15 @@
+using FoodGroups;
 using FoodGroups.Services;
 using Microsoft.EntityFrameworkCore;
+using FoodGroups.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add services to the container.
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+// Lê o arquivo .env se tiver
 DotNetEnv.Env.Load();
 
 // Swagger
@@ -33,6 +40,12 @@ builder.Services.AddScoped<IGrupoRepository, GrupoRepository>();
 
 var app = builder.Build();
 
+
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
+
+app.UseAntiforgery();
+
 // Database Connection test
 using (var scope = app.Services.CreateScope())
 {
@@ -56,9 +69,12 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.MapStaticAssets();
 
 app.MapControllers();
 
