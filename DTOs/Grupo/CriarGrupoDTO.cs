@@ -16,5 +16,5 @@ public class CriarGrupoDTO
 
     public List<Usuario>? Usuarios { get; set; }
 
-    public List<AgendaGrupo> Agendas { get; set; }
+    public List<AgendaGrupo> Agendas { get; set; } = new();
 }

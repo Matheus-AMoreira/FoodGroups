@@ -1,0 +1,49 @@
+@page "/usuarios"
+@using FoodGroups.Models
+@inject IUsuarioService UsuarioService
+
+<h1>Lista de Usuários</h1>
+
+<div style="margin-bottom: 1rem;">
+    <a href="usuarios/criar" class="btn btn-primary">Novo Usuário</a>
+</div>
+
+@if (usuarios == null)
+{
+    <p>Carregando...</p>
+}
+else if (!usuarios.Any())
+{
+    <p>Nenhum usuário encontrado.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Grupos</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var usuario in usuarios)
+            {
+                <tr>
+                    <td>@usuario.Nome</td>
+                    <td>@usuario.Email</td>
+                    <td>@(usuario.Grupo?.Count ?? 0)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Usuario>? usuarios;
+
+    protected override async Task OnInitializedAsync()
+    {
+        usuarios = await UsuarioService.ListarTodos();
+    }
+}

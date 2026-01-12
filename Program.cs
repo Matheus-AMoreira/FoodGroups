@@ -1,16 +1,15 @@
-using FoodGroups;
+using FoodGroups.Components;
 using FoodGroups.Services;
 using Microsoft.EntityFrameworkCore;
-using FoodGroups.Components;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Lê o arquivo .env se tiver
+DotNetEnv.Env.Load();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
-
-// Lê o arquivo .env se tiver
-DotNetEnv.Env.Load();
 
 // Swagger
 builder.Services.AddSwaggerGen();
@@ -40,11 +39,13 @@ builder.Services.AddScoped<IGrupoRepository, GrupoRepository>();
 
 var app = builder.Build();
 
-
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
-
-app.UseAntiforgery();
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
 
 // Database Connection test
 using (var scope = app.Services.CreateScope())
@@ -72,9 +73,13 @@ if (app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
+app.UseAntiforgery();
+
 app.UseAuthorization();
 
 app.MapStaticAssets();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
 app.MapControllers();
 
