@@ -29,12 +29,10 @@ Sistema de gerenciamento de grupos de alimentação, permitindo o controle de us
         Variáveis de Ambiente: Crie um arquivo .env na raiz do projeto ou configure sua Connection String no appsettings.json. O sistema busca pela chave DB_CONNECTION_STRING.
     </li>
     <li>
-        Migrations: Execute o comando para criar as tabelas:
-        ```dotnet ef database update```
+        Migrations: Execute o comando para criar as tabelas: dotnet ef database update
     </li>
     <li>
-        Execução:
-        ```dotnet run```
+        Execução: dotnet run
     </li>
 </ol>
 

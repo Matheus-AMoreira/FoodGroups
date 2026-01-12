@@ -1,0 +1,72 @@
+@page "/grupos"
+@using FoodGroups.Shared.Models
+@inject IGrupoService GrupoService
+
+<h3>Grupos</h3>
+
+<div class="mb-3">
+    <a href="grupos/criar" class="btn btn-primary">Novo Grupo</a>
+</div>
+
+@if (grupos == null)
+{
+    <p>Carregando...</p>
+}
+else if (!grupos.Any())
+{
+    <p>Nenhum grupo cadastrado.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Capacidade</th>
+                <th>Membros</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var g in grupos)
+            {
+                <tr>
+                    <td>@g.Id</td>
+                    <td>@g.Nome</td>
+                    <td>@g.CapacidadeMaxima</td>
+                    <td>@(g.Usuarios?.Count ?? 0)</td>
+                    <td>
+                        <a href="grupos/editar/@g.Id" class="btn btn-sm btn-info">Editar</a>
+                        <button class="btn btn-sm btn-danger" @onclick="() => Deletar(g.Id)">Excluir</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Grupo>? grupos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarGrupos();
+    }
+
+    private async Task CarregarGrupos()
+    {
+        grupos = await GrupoService.ListarTodos();
+    }
+
+    private async Task Deletar(int id)
+    {
+        if (await JsRuntime.InvokeAsync<bool>("confirm", "Tem certeza que deseja excluir este grupo?"))
+        {
+            await GrupoService.Deletar(id);
+            await CarregarGrupos();
+        }
+    }
+    
+    [Inject] IJSRuntime JsRuntime { get; set; } = default!;
+}

@@ -1,0 +1,142 @@
+@page "/grupos/editar/{Id:int}"
+@using FoodGroups.Shared.Models
+@inject IGrupoService GrupoService
+@inject IUsuarioService UsuarioService
+@inject NavigationManager Navigation
+
+<h3>Editar Grupo: @grupo?.Nome</h3>
+
+@if (grupo == null)
+{
+    <p>Carregando...</p>
+}
+else
+{
+    <EditForm Model="@grupo" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label>Nome</label>
+                <InputText class="form-control" @bind-Value="grupo.Nome" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Capacidade</label>
+                <InputNumber class="form-control" @bind-Value="grupo.CapacidadeMaxima" />
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">Membros</div>
+            <div class="card-body">
+                <div class="input-group mb-2">
+                    <input class="form-control" @bind="termoBuscaUsuario" placeholder="Adicionar membro..." />
+                    <button type="button" class="btn btn-secondary" @onclick="BuscarUsuarios">Buscar</button>
+                </div>
+                @if (usuariosEncontrados.Any())
+                {
+                    <ul class="list-group mb-2">
+                        @foreach (var u in usuariosEncontrados)
+                        {
+                            <li class="list-group-item d-flex justify-content-between">
+                                @u.Nome
+                                <button type="button" class="btn btn-sm btn-success" @onclick="() => { grupo.Usuarios.Add(u); usuariosEncontrados.Clear(); }">Add</button>
+                            </li>
+                        }
+                    </ul>
+                }
+                <table class="table table-sm">
+                    <thead><tr><th>Nome</th><th>Ação</th></tr></thead>
+                    <tbody>
+                        @foreach(var u in grupo.Usuarios.ToList())
+                        {
+                            <tr>
+                                <td>@u.Nome</td>
+                                <td><button type="button" class="btn btn-sm btn-danger" @onclick="() => grupo.Usuarios.Remove(u)">Remover</button></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">Agendas</div>
+            <div class="card-body">
+                 <div class="row gx-2 mb-2">
+                    <div class="col"><InputSelect class="form-control" @bind-Value="novaAgenda.Refeicao"><option value="Cafe">Café</option><option value="Almoco">Almoço</option><option value="Jantar">Jantar</option></InputSelect></div>
+                    <div class="col">
+                         <select class="form-control" @bind="tipoAgendaRecorrente">
+                            <option value="true">Semanal</option>
+                            <option value="false">Data</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        @if(bool.Parse(tipoAgendaRecorrente)) {
+                             <InputSelect class="form-control" @bind-Value="novaAgenda.DiaSemana">
+                                @foreach(var d in Enum.GetValues<DayOfWeek>()){<option value="@d">@d</option>}
+                             </InputSelect>
+                        } else {
+                             <InputDate class="form-control" @bind-Value="novaAgenda.DataEspecifica" />
+                        }
+                    </div>
+                    <div class="col-auto"><button type="button" class="btn btn-secondary" @onclick="AdicionarAgenda">Add</button></div>
+                 </div>
+
+                 <ul class="list-group">
+                     @foreach(var ag in grupo.Agendas)
+                     {
+                         <li class="list-group-item d-flex justify-content-between">
+                             <span>@(ag.Refeicao) - @(ag.EhRecorrente ? ag.DiaSemana.ToString() : ag.DataEspecifica?.ToShortDateString())</span>
+                             <button type="button" class="btn btn-sm btn-danger" @onclick="() => grupo.Agendas.Remove(ag)">X</button>
+                         </li>
+                     }
+                 </ul>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+        <a href="/grupos" class="btn btn-link">Voltar</a>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private Grupo? grupo;
+    
+    // UI Helpers
+    private string termoBuscaUsuario = "";
+    private List<Usuario> usuariosEncontrados = new();
+    private AgendaGrupo novaAgenda = new() { EhRecorrente = true, DiaSemana = DayOfWeek.Monday, DataEspecifica = DateTime.Today };
+    private string tipoAgendaRecorrente = "true";
+
+    protected override async Task OnInitializedAsync()
+    {
+        grupo = await GrupoService.ObterPorId(Id);
+    }
+
+    private async Task BuscarUsuarios()
+    {
+        if(!string.IsNullOrWhiteSpace(termoBuscaUsuario))
+            usuariosEncontrados = await UsuarioService.BuscarUsuarios(termoBuscaUsuario);
+    }
+
+    private void AdicionarAgenda()
+    {
+        grupo?.Agendas.Add(new AgendaGrupo {
+            Refeicao = novaAgenda.Refeicao,
+            EhRecorrente = bool.Parse(tipoAgendaRecorrente),
+            DiaSemana = bool.Parse(tipoAgendaRecorrente) ? novaAgenda.DiaSemana : null,
+            DataEspecifica = !bool.Parse(tipoAgendaRecorrente) ? novaAgenda.DataEspecifica : null
+        });
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (grupo != null)
+        {
+            await GrupoService.Atualizar(grupo.Id, grupo);
+            Navigation.NavigateTo("/grupos");
+        }
+    }
+}
