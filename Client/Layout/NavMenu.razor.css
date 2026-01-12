@@ -1,8 +1,0 @@
-.nav-container { display: flex; flex-direction: column; padding: 1rem; }
-.brand { font-size: 1.5rem; font-weight: bold; margin-bottom: 2rem; text-align: center; }
-.nav-links { display: flex; flex-direction: column; gap: 0.5rem; }
-.nav-item {
-    color: #ecf0f1; text-decoration: none; padding: 10px; border-radius: 4px;
-    transition: background 0.2s;
-}
-.nav-item:hover, .nav-item.active { background-color: #34495e; }

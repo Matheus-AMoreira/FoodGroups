@@ -1,0 +1,92 @@
+<div class="max-w-4xl mx-auto p-6 bg-white rounded shadow">
+      <h2 class="text-2xl font-bold mb-6 text-gray-800">{{ isEdit ? 'Editar' : 'Criar' }} Grupo</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <div>
+          <label class="block font-medium mb-1">Nome do Grupo</label>
+          <input type="text" class="form-control" [(ngModel)]="grupo.nome" />
+
+          <label class="block font-medium mb-1 mt-4">Capacidade</label>
+          <input type="number" class="form-control" [(ngModel)]="grupo.capacidadeMaxima" />
+
+          <div *ngIf="!isEdit" class="mt-4 p-4 bg-blue-50 rounded">
+            <label class="block font-medium mb-1 text-blue-800">Definir Dono</label>
+            <app-user-search (userSelected)="setDono($event)"></app-user-search>
+            <div *ngIf="donoTemp" class="mt-2 text-sm text-green-700 font-bold">
+              Selecionado: {{ donoTemp.nome }}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-bold text-lg mb-2">Membros ({{ grupo.usuarios.length }})</h3>
+          <div class="mb-2">
+             <app-user-search (userSelected)="addMembro($event)"></app-user-search>
+          </div>
+          
+          <ul class="border rounded divide-y max-h-60 overflow-y-auto">
+            <li *ngFor="let u of grupo.usuarios" class="p-2 flex justify-between items-center">
+               <span>{{ u.nome }}</span>
+               <button *ngIf="u.id !== grupo.criadorId" class="text-red-500 hover:text-red-700 font-bold" (click)="removeMembro(u)">X</button>
+               <span *ngIf="u.id === grupo.criadorId" class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Dono</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-8 border-t pt-6">
+        <h3 class="font-bold text-lg mb-4">Agendas</h3>
+        
+        <div class="flex flex-wrap gap-2 items-end mb-4 bg-gray-50 p-4 rounded">
+           <div class="w-32">
+             <label class="text-xs">Refeição</label>
+             <select [(ngModel)]="novaAgenda.refeicao" class="form-control mb-0">
+               <option [ngValue]="0">Café</option>
+               <option [ngValue]="1">Almoço</option>
+               <option [ngValue]="2">Jantar</option>
+             </select>
+           </div>
+           
+           <div class="w-40">
+             <label class="text-xs">Tipo</label>
+             <select [(ngModel)]="novaAgenda.ehRecorrente" class="form-control mb-0">
+               <option [ngValue]="true">Semanal</option>
+               <option [ngValue]="false">Data</option>
+             </select>
+           </div>
+
+           <div class="w-40">
+             <label class="text-xs">Quando</label>
+             <select *ngIf="novaAgenda.ehRecorrente" [(ngModel)]="novaAgenda.diaSemana" class="form-control mb-0">
+                <option [ngValue]="1">Segunda</option>
+                <option [ngValue]="2">Terça</option>
+                <option [ngValue]="3">Quarta</option>
+                <option [ngValue]="4">Quinta</option>
+                <option [ngValue]="5">Sexta</option>
+             </select>
+             <input *ngIf="!novaAgenda.ehRecorrente" type="date" [(ngModel)]="novaAgenda.dataEspecifica" class="form-control mb-0" />
+           </div>
+
+           <button class="btn btn-secondary" (click)="addAgenda()">Adicionar</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+           <div *ngFor="let ag of grupo.agendas; let i = index" class="p-2 border rounded flex justify-between items-center bg-white">
+              <div>
+                <strong class="block">{{ getNomeRefeicao(ag.refeicao) }}</strong>
+                <span class="text-sm text-gray-600">
+                  {{ ag.ehRecorrente ? 'Toda ' + getDiaSemana(ag.diaSemana) : ag.dataEspecifica }}
+                </span>
+              </div>
+              <button class="text-red-500 font-bold px-2" (click)="removeAgenda(i)">X</button>
+           </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-3">
+        <button class="btn btn-secondary" routerLink="/">Cancelar</button>
+        <button class="btn btn-primary" (click)="salvar()">Salvar Grupo</button>
+      </div>
+
+    </div>

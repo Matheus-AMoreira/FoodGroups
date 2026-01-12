@@ -1,0 +1,36 @@
+<div class="flex flex-wrap justify-between items-center mb-6 gap-4 p-4 bg-white rounded shadow-sm">
+      <h2 class="text-2xl font-bold text-gray-800">Agenda Mensal</h2>
+      
+      <div class="flex gap-2">
+        <select [(ngModel)]="mes" class="form-control w-32">
+          <option *ngFor="let m of meses; let i = index" [value]="i + 1">{{ m }}</option>
+        </select>
+        <select [(ngModel)]="ano" class="form-control w-24">
+          <option *ngFor="let a of anos" [value]="a">{{ a }}</option>
+        </select>
+        <button class="btn btn-primary h-[42px]" (click)="carregar()">Filtrar</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      
+      <div *ngFor="let dia of agenda | keyvalue" class="day-card">
+        <div class="header">
+           {{ formatarData(dia.key) }}
+        </div>
+        <div class="body">
+          <div *ngFor="let item of dia.value" 
+               class="meal-item" 
+               [ngClass]="item.refeicao.toLowerCase()">
+            <span class="meal-name">{{ item.refeicao }}</span>
+            <span class="group-name">{{ item.grupo }}</span>
+            <span class="capacity">{{ item.quantidadePessoas }} / {{ item.limite }}</span>
+          </div>
+          
+          <div *ngIf="dia.value.length === 0" class="text-center text-gray-400 italic text-sm">
+            Sem refeições
+          </div>
+        </div>
+      </div>
+
+    </div>
