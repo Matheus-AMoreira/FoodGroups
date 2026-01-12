@@ -1,0 +1,137 @@
+@page "/grupos/criar"
+@using FoodGroups.Shared.Models
+@using FoodGroups.Shared.Validators
+@using FoodGroups.Client.Components 
+@inject IGrupoService GrupoService
+@inject NavigationManager Navigation
+
+<div class="page-container">
+    <h2>Criar Novo Grupo</h2>
+
+    <EditForm Model="@grupo" OnValidSubmit="Salvar">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="section-card">
+            <h3>1. Definir Dono do Grupo</h3>
+            @if (donoSelecionado == null)
+            {
+                <UserSearch OnUserSelected="DefinirDono" />
+            }
+            else
+            {
+                <div class="selected-user">
+                    <span>Dono: <strong>@donoSelecionado.Nome</strong></span>
+                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => donoSelecionado = null">Alterar</button>
+                </div>
+            }
+        </div>
+
+        <div class="section-card form-grid">
+            <div class="field">
+                <label>Nome do Grupo</label>
+                <InputText class="form-control" @bind-Value="grupo.Nome" />
+            </div>
+            <div class="field">
+                <label>Capacidade</label>
+                <InputNumber class="form-control" @bind-Value="grupo.CapacidadeMaxima" />
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h3>2. Configurar Agenda</h3>
+            
+            @if (!string.IsNullOrEmpty(mensagemErroAgenda))
+            {
+                <div class="alert-error">@mensagemErroAgenda</div>
+            }
+
+            <div class="agenda-form">
+                <InputSelect class="form-control" @bind-Value="novaAgenda.Refeicao">
+                    <option value="Cafe">Café</option>
+                    <option value="Almoco">Almoço</option>
+                    <option value="Jantar">Jantar</option>
+                </InputSelect>
+
+                <select class="form-control" @bind="ehRecorrente">
+                    <option value="true">Semanal (Recorrente)</option>
+                    <option value="false">Data Específica</option>
+                </select>
+
+                @if (bool.Parse(ehRecorrente))
+                {
+                    <InputSelect class="form-control" @bind-Value="novaAgenda.DiaSemana">
+                        @foreach (var d in Enum.GetValues<DayOfWeek>()) { <option value="@d">@d</option> }
+                    </InputSelect>
+                }
+                else
+                {
+                    <InputDate class="form-control" @bind-Value="novaAgenda.DataEspecifica" />
+                }
+
+                <button type="button" class="btn btn-secondary" @onclick="AdicionarAgenda">Adicionar</button>
+            </div>
+
+            <ul class="agenda-list">
+                @foreach (var item in grupo.Agendas)
+                {
+                    <li>
+                        <span>@item.Refeicao - @(item.EhRecorrente ? item.DiaSemana.ToString() : item.DataEspecifica?.ToShortDateString())</span>
+                        <button type="button" class="btn btn-danger" @onclick="() => grupo.Agendas.Remove(item)">Remover</button>
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <div class="actions">
+            <button type="submit" class="btn btn-primary" disabled="@(donoSelecionado == null)">Finalizar Criação</button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private Grupo grupo = new() { Agendas = new() };
+    private Usuario? donoSelecionado;
+    private AgendaGrupo novaAgenda = new() { EhRecorrente = true, DiaSemana = DayOfWeek.Monday, DataEspecifica = DateTime.Today };
+    private string ehRecorrente = "true";
+    private string mensagemErroAgenda = "";
+
+    private void DefinirDono(Usuario u)
+    {
+        donoSelecionado = u;
+        grupo.CriadorId = u.Id;
+    }
+
+    private void AdicionarAgenda()
+    {
+        mensagemErroAgenda = "";
+        
+        var itemParaAdicionar = new AgendaGrupo
+        {
+            Refeicao = novaAgenda.Refeicao,
+            EhRecorrente = bool.Parse(ehRecorrente),
+            DiaSemana = bool.Parse(ehRecorrente) ? novaAgenda.DiaSemana : null,
+            DataEspecifica = !bool.Parse(ehRecorrente) ? novaAgenda.DataEspecifica : null
+        };
+
+        // VALIDAÇÃO DE NEGÓCIO NO FRONT (Evita chamada API inútil)
+        var erro = AgendaValidator.VerificarConflito(grupo.Agendas, itemParaAdicionar);
+        
+        if (erro != null)
+        {
+            mensagemErroAgenda = erro;
+            return;
+        }
+
+        grupo.Agendas.Add(itemParaAdicionar);
+    }
+
+    private async Task Salvar()
+    {
+        if (donoSelecionado == null) return;
+        
+        var resp = await GrupoService.CriarGrupo(grupo);
+        if (resp.Contains("sucesso")) Navigation.NavigateTo("/grupos");
+        else mensagemErroAgenda = resp;
+    }
+}

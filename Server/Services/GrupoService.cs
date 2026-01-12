@@ -1,6 +1,7 @@
 using FoodGroups.Shared.Models;
 using FoodGroups.Shared.DTOs;
 using FoodGroups.Shared.Interfaces;
+using FoodGroups.Shared.Validators;
 
 namespace FoodGroups.Services;
 
@@ -21,31 +22,21 @@ public class GrupoService : IGrupoService
 
     public async Task<String> CriarGrupo(Grupo grupo)
     {
-        // 1. Validação de Dono
-        if (grupo.CriadorId <= 0)
+        if (grupo.CriadorId <= 0) return "O grupo precisa ter um dono.";
+
+        // Validação de Conflito no Back (Segurança final)
+        var agendasValidadas = new List<AgendaGrupo>();
+        foreach (var agenda in grupo.Agendas)
         {
-             return "O grupo precisa ter um criador (Dono) vinculado.";
+            var erro = AgendaValidator.VerificarConflito(agendasValidadas, agenda);
+            if (erro != null) return $"Erro de validação: {erro}";
+            agendasValidadas.Add(agenda);
         }
 
-        // 2. Validação de Agenda (Regra solicitada)
-        if (grupo.Agendas == null || !grupo.Agendas.Any())
-        {
-            return "O grupo precisa ter pelo menos uma agenda definida (Ex: Almoço toda Segunda).";
-        }
-
-        if (grupo.CapacidadeMaxima <= 1) 
-        {
-            return "Capacidade precisa ser maior que 1";
-        }
-
-        // Verifica se o usuário criador existe
         var criador = await _usuarioRepository.ProcurarUsuarioById(grupo.CriadorId);
-        if (criador == null) return "Usuário criador não encontrado.";
+        if (criador == null) return "Usuário dono não encontrado.";
 
-        // Adiciona o criador automaticamente à lista de usuários do grupo
-        if (grupo.Usuarios == null) grupo.Usuarios = new List<Usuario>();
         grupo.Usuarios.Add(criador);
-
         await _grupoRepository.CriarGrupo(grupo);
 
         return "Grupo criado com sucesso";
@@ -138,43 +129,62 @@ public class GrupoService : IGrupoService
     // 2. Visualização Mensal
     public async Task<Dictionary<string, List<ResumoRefeicaoDTO>>> ObterAgendaMensal(int? mes, int? ano)
     {
-        int consultaMes = mes ?? DateTime.Now.Month;
-        int consultaAno = ano ?? DateTime.Now.Year;
-
-        var inicio = new DateTime(consultaAno, consultaMes, 1);
-        var fim = inicio.AddMonths(2).AddDays(-1); // Mês atual e próximo
+        int m = mes ?? DateTime.Now.Month;
+        int a = ano ?? DateTime.Now.Year;
+        
+        var dataInicio = new DateTime(a, m, 1);
+        var dataFim = dataInicio.AddMonths(1).AddDays(-1);
 
         var grupos = await _grupoRepository.GetGruposWithUsuariosAndAgendas();
-
         var resultado = new List<ResumoRefeicaoDTO>();
 
-        for (var dia = inicio; dia <= fim; dia = dia.AddDays(1))
+        foreach (var grupo in grupos)
         {
-            foreach (var g in grupos)
+            foreach (var agenda in grupo.Agendas)
             {
-                var temAgenda = g.Agendas.Any(a =>
-                    (a.EhRecorrente && a.DiaSemana == dia.DayOfWeek) ||
-                    (!a.EhRecorrente && a.DataEspecifica?.Date == dia.Date));
+                // Lógica de Desempenho: Projetar apenas datas dentro do mês solicitado
+                // Limite de recorrência: 1 ano a partir de hoje (Regra de Negócio)
+                var limiteRecorrencia = DateTime.Now.AddYears(1);
 
-                if (temAgenda)
+                if (agenda.EhRecorrente && agenda.DiaSemana.HasValue)
                 {
-                    foreach (var agenda in g.Agendas.Where(a => (a.EhRecorrente && a.DiaSemana == dia.DayOfWeek) || (!a.EhRecorrente && a.DataEspecifica?.Date == dia.Date)))
+                    // Projeta os dias da semana dentro do mês alvo
+                    for (var d = dataInicio; d <= dataFim; d = d.AddDays(1))
                     {
-                        resultado.Add(new ResumoRefeicaoDTO
+                        if (d > limiteRecorrencia) break;
+
+                        if (d.DayOfWeek == agenda.DiaSemana.Value)
                         {
-                            Data = dia.ToString("dd/MM/yyyy"),
-                            Refeicao = agenda.Refeicao.ToString(),
-                            Grupo = g.Nome,
-                            QuantidadePessoas = g.Usuarios.Count,
-                            Limite = g.CapacidadeMaxima
-                        });
+                            resultado.Add(MontarDTO(d, agenda, grupo));
+                        }
+                    }
+                }
+                else if (!agenda.EhRecorrente && agenda.DataEspecifica.HasValue)
+                {
+                    var data = agenda.DataEspecifica.Value;
+                    if (data >= dataInicio && data <= dataFim)
+                    {
+                        resultado.Add(MontarDTO(data, agenda, grupo));
                     }
                 }
             }
         }
 
-        // Agrupa por Mês/Ano para o Front-end
-        return resultado.GroupBy(r => DateTime.Parse(r.Data!).ToString("MMMM yyyy"))
-                .ToDictionary(g => g.Key, g => g.ToList());
+        return resultado
+            .OrderBy(x => DateTime.Parse(x.Data!))
+            .GroupBy(r => r.Data!)
+            .ToDictionary(g => g.Key, g => g.ToList());
+    }
+
+    private ResumoRefeicaoDTO MontarDTO(DateTime data, AgendaGrupo agenda, Grupo grupo)
+    {
+        return new ResumoRefeicaoDTO
+        {
+            Data = data.ToString("yyyy-MM-dd"), // Formato ISO para facilitar ordenação no front
+            Refeicao = agenda.Refeicao.ToString(),
+            Grupo = grupo.Nome,
+            QuantidadePessoas = grupo.Usuarios.Count,
+            Limite = grupo.CapacidadeMaxima
+        };
     }
 }

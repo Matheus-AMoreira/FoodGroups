@@ -1,0 +1,43 @@
+@using FoodGroups.Shared.Models
+@using FoodGroups.Shared.Interfaces
+@inject IUsuarioService UsuarioService
+
+<div class="search-wrapper">
+    <div class="search-input-group">
+        <input type="text" class="form-control" @bind="termo" placeholder="Buscar dono por nome/email..." />
+        <button type="button" class="btn btn-secondary" @onclick="Pesquisar">Buscar</button>
+    </div>
+
+    @if (usuarios.Any())
+    {
+        <ul class="result-list">
+            @foreach (var u in usuarios)
+            {
+                <li class="result-item">
+                    <span>@u.Nome (@u.Email)</span>
+                    <button type="button" class="btn btn-primary" @onclick="() => Selecionar(u)">Selecionar</button>
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    private string termo = "";
+    private List<Usuario> usuarios = new();
+    
+    [Parameter] public EventCallback<Usuario> OnUserSelected { get; set; }
+
+    private async Task Pesquisar()
+    {
+        if (!string.IsNullOrEmpty(termo))
+            usuarios = await UsuarioService.BuscarUsuarios(termo);
+    }
+
+    private async Task Selecionar(Usuario u)
+    {
+        await OnUserSelected.InvokeAsync(u);
+        usuarios.Clear();
+        termo = "";
+    }
+}

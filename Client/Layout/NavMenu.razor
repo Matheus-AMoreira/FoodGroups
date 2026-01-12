@@ -1,17 +1,12 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">FoodGroups</a>
-    </div>
+﻿<div class="nav-container">
+    <div class="brand">
+        <NavLink class="nav-item" href="" Match="NavLinkMatch.All">
+            FoodGroups
+        </NavLink>
+     </div>
+    <nav class="nav-links">
+        <NavLink class="nav-item" href="Dashboard">Dashboard</NavLink>
+        <NavLink class="nav-item" href="grupos">Grupos</NavLink>
+        <NavLink class="nav-item" href="usuarios">Usuários</NavLink>
+    </nav>
 </div>
-
-<nav class="flex-column">
-    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-        <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
-    </NavLink>
-    <NavLink class="nav-link" href="usuarios">
-        <span class="bi bi-people-fill" aria-hidden="true"></span> Usuários
-    </NavLink>
-    <NavLink class="nav-link" href="grupos/criar">
-        <span class="bi bi-collection-fill" aria-hidden="true"></span> Novo Grupo
-    </NavLink>
-</nav>
