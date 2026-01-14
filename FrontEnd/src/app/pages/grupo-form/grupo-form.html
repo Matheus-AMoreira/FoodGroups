@@ -1,92 +1,111 @@
-<div class="max-w-4xl mx-auto p-6 bg-white rounded shadow">
-      <h2 class="text-2xl font-bold mb-6 text-gray-800">{{ isEdit ? 'Editar' : 'Criar' }} Grupo</h2>
+<div class="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-100">
+  <header class="mb-8 border-b pb-4">
+    <h2 class="text-3xl font-extrabold text-gray-900">{{ isEdit() ? 'Editar' : 'Criar Novo' }} Grupo</h2>
+  </header>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
+  <div class="space-y-8">
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg">
+      <div class="space-y-4">
+        <h3 class="text-lg font-bold text-blue-900 mb-2">Informações Gerais</h3>
         <div>
-          <label class="block font-medium mb-1">Nome do Grupo</label>
-          <input type="text" class="form-control" [(ngModel)]="grupo.nome" />
-
-          <label class="block font-medium mb-1 mt-4">Capacidade</label>
-          <input type="number" class="form-control" [(ngModel)]="grupo.capacidadeMaxima" />
-
-          <div *ngIf="!isEdit" class="mt-4 p-4 bg-blue-50 rounded">
-            <label class="block font-medium mb-1 text-blue-800">Definir Dono</label>
-            <app-user-search (userSelected)="setDono($event)"></app-user-search>
-            <div *ngIf="donoTemp" class="mt-2 text-sm text-green-700 font-bold">
-              Selecionado: {{ donoTemp.nome }}
+        @if (!isEdit()) {
+          <h3 class="text-lg font-bold text-blue-900 mb-2">Dono do Grupo</h3>
+          <app-user-search (userSelected)="setDono($event)"></app-user-search>
+          @if (donoTemp()) {
+            <div class="mt-3 text-sm text-green-700 font-bold bg-green-50 p-2 rounded">
+              Selecionado: {{ donoTemp()?.nome }}
             </div>
-          </div>
-        </div>
-
+          }
+        }
+      </div>
         <div>
-          <h3 class="font-bold text-lg mb-2">Membros ({{ grupo.usuarios.length }})</h3>
-          <div class="mb-2">
-             <app-user-search (userSelected)="addMembro($event)"></app-user-search>
-          </div>
-          
-          <ul class="border rounded divide-y max-h-60 overflow-y-auto">
-            <li *ngFor="let u of grupo.usuarios" class="p-2 flex justify-between items-center">
-               <span>{{ u.nome }}</span>
-               <button *ngIf="u.id !== grupo.criadorId" class="text-red-500 hover:text-red-700 font-bold" (click)="removeMembro(u)">X</button>
-               <span *ngIf="u.id === grupo.criadorId" class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Dono</span>
-            </li>
-          </ul>
+          <label class="block text-sm font-semibold mb-1">Nome do Grupo</label>
+          <input type="text" class="w-full border rounded-lg p-2" 
+                 [ngModel]="grupo().nome" (ngModelChange)="updateGrupo('nome', $event)" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Capacidade Máxima</label>
+          <input type="number" class="w-full border rounded-lg p-2" 
+                 [ngModel]="grupo().capacidadeMaxima" (ngModelChange)="updateGrupo('capacidadeMaxima', $event)" />
         </div>
       </div>
+    </section>
 
-      <div class="mt-8 border-t pt-6">
-        <h3 class="font-bold text-lg mb-4">Agendas</h3>
+    <section>
+      <h3 class="text-xl font-bold mb-4">📅 Agendas do Grupo</h3>
+      <div class="flex flex-col md:flex-row gap-4 items-end bg-blue-50 p-6 rounded-xl mb-4">
+        <div class="flex-1 w-full">
+          <label class="text-xs font-bold uppercase text-blue-800">Refeição</label>
+          <select [ngModel]="novaAgenda().refeicao" (ngModelChange)="updateNovaAgenda('refeicao', $event)" class="w-full border rounded-lg p-2 mt-1">
+            <option [ngValue]="0">Café da Manhã</option>
+            <option [ngValue]="1">Almoço</option>
+            <option [ngValue]="2">Jantar</option>
+          </select>
+        </div>
         
-        <div class="flex flex-wrap gap-2 items-end mb-4 bg-gray-50 p-4 rounded">
-           <div class="w-32">
-             <label class="text-xs">Refeição</label>
-             <select [(ngModel)]="novaAgenda.refeicao" class="form-control mb-0">
-               <option [ngValue]="0">Café</option>
-               <option [ngValue]="1">Almoço</option>
-               <option [ngValue]="2">Jantar</option>
-             </select>
-           </div>
-           
-           <div class="w-40">
-             <label class="text-xs">Tipo</label>
-             <select [(ngModel)]="novaAgenda.ehRecorrente" class="form-control mb-0">
-               <option [ngValue]="true">Semanal</option>
-               <option [ngValue]="false">Data</option>
-             </select>
-           </div>
-
-           <div class="w-40">
-             <label class="text-xs">Quando</label>
-             <select *ngIf="novaAgenda.ehRecorrente" [(ngModel)]="novaAgenda.diaSemana" class="form-control mb-0">
-                <option [ngValue]="1">Segunda</option>
-                <option [ngValue]="2">Terça</option>
-                <option [ngValue]="3">Quarta</option>
-                <option [ngValue]="4">Quinta</option>
-                <option [ngValue]="5">Sexta</option>
-             </select>
-             <input *ngIf="!novaAgenda.ehRecorrente" type="date" [(ngModel)]="novaAgenda.dataEspecifica" class="form-control mb-0" />
-           </div>
-
-           <button class="btn btn-secondary" (click)="addAgenda()">Adicionar</button>
+        <div class="flex-1 w-full">
+          <label class="text-xs font-bold uppercase text-blue-800">Frequência</label>
+          <select [ngModel]="novaAgenda().ehRecorrente" (ngModelChange)="updateNovaAgenda('ehRecorrente', $event)" class="w-full border rounded-lg p-2 mt-1">
+            <option [ngValue]="true">Semanal</option>
+            <option [ngValue]="false">Data Específica</option>
+          </select>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-           <div *ngFor="let ag of grupo.agendas; let i = index" class="p-2 border rounded flex justify-between items-center bg-white">
-              <div>
-                <strong class="block">{{ getNomeRefeicao(ag.refeicao) }}</strong>
-                <span class="text-sm text-gray-600">
-                  {{ ag.ehRecorrente ? 'Toda ' + getDiaSemana(ag.diaSemana) : ag.dataEspecifica }}
-                </span>
-              </div>
-              <button class="text-red-500 font-bold px-2" (click)="removeAgenda(i)">X</button>
-           </div>
+        <div class="flex-1 w-full">
+          <label class="text-xs font-bold uppercase text-blue-800">Quando</label>
+          @if (novaAgenda().ehRecorrente) {
+            <select [ngModel]="novaAgenda().diaSemana" (ngModelChange)="updateNovaAgenda('diaSemana', $event)" class="w-full border rounded-lg p-2 mt-1">
+              <option [ngValue]="1">Segunda</option>
+              <option [ngValue]="2">Terça</option>
+              <option [ngValue]="3">Quarta</option>
+              <option [ngValue]="4">Quinta</option>
+              <option [ngValue]="5">Sexta</option>
+            </select>
+          } @else {
+            <input type="date" [ngModel]="novaAgenda().dataEspecifica" (ngModelChange)="updateNovaAgenda('dataEspecifica', $event)" class="w-full border rounded-lg p-2 mt-1" />
+          }
         </div>
+
+        <button (click)="addAgenda()" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg">
+          + Adicionar
+        </button>
       </div>
 
-      <div class="mt-6 flex justify-end gap-3">
-        <button class="btn btn-secondary" routerLink="/">Cancelar</button>
-        <button class="btn btn-primary" (click)="salvar()">Salvar Grupo</button>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        @for (ag of grupo().agendas; track $index) {
+          <div class="p-3 border rounded bg-white flex justify-between items-center shadow-sm">
+            <div>
+              <span class="block font-bold">{{ getNomeRefeicao(ag.refeicao) }}</span>
+              <span class="text-xs text-gray-500">
+                {{ ag.ehRecorrente ? 'Toda ' + getDiaSemana(ag.diaSemana ?? 0) : ag.dataEspecifica }}
+              </span>
+            </div>
+            <button (click)="removeAgenda($index)" class="text-red-500 font-bold px-2">✕</button>
+          </div>
+        }
       </div>
+    </section>
 
-    </div>
+    <section>
+      <h3 class="text-xl font-bold mb-4">👥 Membros ({{ grupo().usuarios.length }})</h3>
+      <app-user-search (userSelected)="addMembro($event)"></app-user-search>
+      <ul class="mt-4 border rounded-lg divide-y bg-white">
+        @for (u of grupo().usuarios; track u.id) {
+          <li class="p-3 flex justify-between items-center">
+            <span>{{ u.nome }}</span>
+            @if (u.id === grupo().criadorId) {
+              <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold">DONO</span>
+            } @else {
+              <button (click)="removeMembro(u)" class="text-red-500 text-sm">Remover</button>
+            }
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+
+  <footer class="mt-10 border-t pt-6 flex justify-end gap-4">
+    <button routerLink="/" class="px-6 py-2 text-gray-600">Cancelar</button>
+    <button (click)="salvar()" class="px-8 py-2 bg-green-600 text-white rounded-lg font-bold">Salvar</button>
+  </footer>
+</div>

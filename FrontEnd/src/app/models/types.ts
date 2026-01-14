@@ -25,8 +25,8 @@ export interface Grupo {
 
 export interface ResumoRefeicaoDTO {
   data: string;
-  refeicao: string;
-  grupo: string;
+  tipo: string;
+  descricao: string;
   quantidadePessoas: number;
   limite: number;
 }

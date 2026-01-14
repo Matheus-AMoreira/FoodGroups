@@ -181,8 +181,8 @@ public class GrupoService : IGrupoService
         return new ResumoRefeicaoDTO
         {
             Data = data.ToString("yyyy-MM-dd"), // Formato ISO para facilitar ordenação no front
-            Refeicao = agenda.Refeicao.ToString(),
-            Grupo = grupo.Nome,
+            Tipo = agenda.Refeicao.ToString(),
+            Descricao = grupo.Nome,
             QuantidadePessoas = grupo.Usuarios.Count,
             Limite = grupo.CapacidadeMaxima
         };

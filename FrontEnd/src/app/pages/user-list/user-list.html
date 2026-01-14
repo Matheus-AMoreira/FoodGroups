@@ -18,23 +18,25 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let user of usuarios">
+        @for (user of usuarios(); track user.id) {
+          <tr>
           <td>#{{ user.id }}</td>
           <td>
-            <div class="font-medium text-gray-900">{{ user.nome }}</div>
+          <div class="font-medium text-gray-900">{{ user.nome }}</div>
           </td>
           <td>{{ user.email }}</td>
           <td class="text-right space-x-2">
-            <a [routerLink]="['/usuarios/editar', user.id]" class="text-blue-600 hover:text-blue-900 font-medium">Editar</a>
-            <button (click)="deletar(user.id)" class="text-red-600 hover:text-red-900 font-medium ml-4">Excluir</button>
+          <a [routerLink]="['/usuarios/editar', user.id]" class="text-blue-600 hover:text-blue-900 font-medium">Editar</a>
+          <button (click)="deletar(user.id)" class="text-red-600 hover:text-red-900 font-medium ml-4">Excluir</button>
           </td>
-        </tr>
-        
-        <tr *ngIf="usuarios.length === 0">
-          <td colspan="4" class="text-center text-gray-400 py-8">
+          </tr>
+          } @empty {
+            <tr>
+            <td colspan="4" class="text-center text-gray-400 py-8">
             Nenhum usuário encontrado.
-          </td>
-        </tr>
+            </td>
+            </tr>
+          }
       </tbody>
     </table>
   </div>

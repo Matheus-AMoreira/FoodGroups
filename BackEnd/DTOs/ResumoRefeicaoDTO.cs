@@ -4,15 +4,9 @@ namespace FoodGroups.DTOs;
 
 public class ResumoRefeicaoDTO
 {
-    [Required]
     public string? Data { get; set; }
-
-    [Required]
-    public string? Refeicao { get; set; }
-
-    [Required]
-    public string? Grupo { get; set; }
-
+    public string? Tipo { get; set; }
+    public string? Descricao { get; set; }
     public int QuantidadePessoas { get; set; }
     public int Limite { get; set; }
 }

@@ -35,9 +35,11 @@
              placeholder="********">
     </div>
 
-    <div *ngIf="isEdit" class="mb-6 bg-yellow-50 p-3 rounded text-sm text-yellow-700">
-      Nota: A edição de senha não está habilitada nesta tela.
-    </div>
+    @if (isEdit) {
+      <div class="mb-6 bg-yellow-50 p-3 rounded text-sm text-yellow-700">
+        Nota: A edição de senha não está habilitada nesta tela.
+      </div>
+    }
 
     <div class="flex justify-end gap-3 pt-2">
       <a routerLink="/usuarios" class="btn btn-secondary">Cancelar</a>
